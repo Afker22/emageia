@@ -1,0 +1,144 @@
+import React from 'react';
+import Axios from 'axios';
+// import './App.css';
+import {useState} from 'react';
+import {Form} from 'react-bootstrap';
+
+
+function App() {
+  const [name,setName]=useState("");
+  const [phone,setPhone]=useState(0);
+  const [address,setAddress]=useState("");
+  const [email,setEmail]=useState("");
+  const [add,setAdd]=useState(false);
+
+  const [empData,setempData]=useState([]);
+
+  const addData=()=>{
+    console.log(name+','+phone+','+address+','+email);
+    Axios.post('http://localhost:3001/create',
+    {
+      name:name,
+      phone:phone,
+      address:address,
+      email:email
+    })
+    .then(()=>{
+      console.log('value added to db');
+      setempData([...empData,{
+        name:name,
+        phone:phone,
+        address:address,
+        email:email
+      }])
+    });
+
+  }
+
+  const showData=()=>{
+    Axios.get('http://localhost:3001/read')
+    .then((res)=>{
+      // console.log(res);
+      setempData(res.data);
+    });
+
+  }
+
+  const updateData=(id)=>{
+    console.log(name+','+phone+','+address+','+email);
+    Axios.put('http://localhost:3001/update',
+    {
+      name:name,
+      phone:phone,
+      address:address,
+      email:email,
+      id:id
+    })
+    .then((res)=>{
+      setempData(empData.map((val)=>{
+        return val.id===id
+        ?
+        {
+          id:val.id,
+          name:val.name,
+          phone:val.phone,
+          address:val.address,
+          email:val.email
+        }
+        :
+        val
+      }))
+    })
+  }
+
+  const deleteData=(id)=>{
+    // Axios.delete('http://localhost:3001/delete',{id:id})
+    Axios.delete(`http://localhost:3001/delete/${id}`)
+    .then((res)=>{
+      console.log(res);
+      // showData();
+      setempData(empData.filter((val)=>{return val.id!==id}))
+
+    });
+  }
+      
+  return (
+    <div className="App">
+      <div className="">
+
+          Add new contacts
+          <Form>
+            <Form.Group className="mb-3" controlId="formBasicEmail">
+              <Form.Label>Name:</Form.Label>
+              <input type="text" placeholder="Enter name" onChange={(e)=>setName(e.target.value)}/>  
+              
+              <Form.Label>Phone:</Form.Label>
+              <input type="number" placeholder="Enter phone" onChange={(e)=>setPhone(e.target.value)}/>  
+              
+              <Form.Label>Address:</Form.Label>
+              <input type="text" placeholder="Enter address" onChange={(e)=>setAddress(e.target.value)}/>  
+              
+              <Form.Label>Email address:</Form.Label>
+              <input type="email" placeholder="Enter email" onChange={(e)=>setEmail(e.target.value)}/>
+
+              <button onClick={addData}>Add to DB</button>
+
+            </Form.Group>
+          </Form>
+      </div>
+
+    
+
+      
+
+
+
+
+      <div className=''>
+        <button onClick={showData}>Show Contacts</button>
+
+        {
+          empData.map((val,key)=>{
+            return (
+              <div className=''>
+              <div>
+                  <h3>Name : {val.name}</h3>
+                  <h3>Phone : {val.phone}</h3>
+                  <h3>Address : {val.address}</h3>
+                  <h3>Email : {val.email}</h3>
+              </div>
+              <div>
+              
+              <button onClick={()=>{updateData(val.id)}}>Update</button>
+              <button onClick={()=>{deleteData(val.id)}}>Delete</button>
+              </div>
+              </div>)
+          })
+        }
+      </div>
+
+    </div>
+  );
+}
+
+export default App;
